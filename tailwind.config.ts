@@ -9,8 +9,28 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        mocha: {
+          DEFAULT: "#6D4C41", // Mocha Mousse
+        },
+        ivory: {
+          DEFAULT: "#F5F5F5", // Fond clair
+        },
+        taupe: {
+          DEFAULT: "#BDB9B7", // Texte ou bordures neutres
+        },
+        charcoal: {
+          DEFAULT: "#3C3C3B", // Noir adouci
+        },
+        sand: {
+          DEFAULT: "#E4DCD2", // Ton beige
+        },
+      },
+      fontFamily: {
+        sans: ["Roboto", "sans-serif"], // Police principale
+        serif: ["Merriweather", "serif"], // Police pour les titres
+      },
+      borderRadius: {
+        soft: "5px", 
       },
     },
   },

@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Roboto:wght@400;500&display=swap');
+
+:root {
+  --color-mocha-mousse: #6D4C41;
+  --color-ivory: #F5F5F5;
+  --color-taupe-gray: #BDB9B7;
+  --color-sage-green: #A8BCA1;
+  --color-powder-blue: #B0C4DE;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: var(--color-ivory);
+  color: var(--color-mocha-mousse);
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Merriweather', serif;
+  color: var(--color-mocha-mousse);
+}
+
+a {
+  color: var(--color-powder-blue);
+  text-decoration: none;
+}
+
+button {
+  background-color: var(--color-powder-blue);
+  color: var(--color-ivory);
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+}
+
+button.secondary {
+  background-color: var(--color-sage-green);
+}
+
+input, textarea {
+  border: 1px solid var(--color-taupe-gray);
+  padding: 10px;
+  border-radius: 5px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'Roboto', sans-serif;
+}
+
+header {
+  background-color: var(--color-mocha-mousse);
+  color: var(--color-ivory);
+  padding: 15px;
+}
+
+footer {
+  background-color: var(--color-mocha-mousse);
+  color: var(--color-ivory);
+  padding: 15px;
+  text-align: center;
+}
