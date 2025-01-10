@@ -10,10 +10,12 @@ import atmosphereVertexShader from "./shaders/atmosphereVertex.glsl";
 
 export default function GlobeComponent() {
   const mountRef = useRef<HTMLDivElement>(null);
+  const isInitialized = useRef(false);
 
   useEffect(() => {
-    if (!mountRef.current) return;
+    if (!mountRef.current || isInitialized.current) return;
 
+    isInitialized.current = true;
     // Scene setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -82,7 +84,7 @@ export default function GlobeComponent() {
       "position",
       new THREE.Float32BufferAttribute(starVertices, 3)
     );
-    
+
     const stars = new THREE.Points(starsGeometry, starsMaterial);
     scene.add(stars);
 
@@ -99,10 +101,9 @@ export default function GlobeComponent() {
     // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
-
-      // Rotate the sphere for a dynamic effect
+      
       if (!isMouseDown || !isMouseMoving) {
-        sphere.rotation.y += 0.001;
+        sphere.rotation.y += 0.0002;
       }
       gsap.to(group.rotation, {
         x: mouse.y * 2,
@@ -135,6 +136,23 @@ export default function GlobeComponent() {
       document.removeEventListener("mousemove", onMouseMove);
     });
 
+    // Change cursor on hover
+    renderer.domElement.addEventListener("mouseenter", () => {
+      renderer.domElement.style.cursor = "grab";
+    });
+
+    renderer.domElement.addEventListener("mouseleave", () => {
+      renderer.domElement.style.cursor = "default";
+    });
+
+    renderer.domElement.addEventListener("mousedown", () => {
+      renderer.domElement.style.cursor = "grabbing";
+    });
+
+    renderer.domElement.addEventListener("mouseup", () => {
+      renderer.domElement.style.cursor = "grab";
+    });
+
     // Handle resizing
     const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
@@ -147,6 +165,8 @@ export default function GlobeComponent() {
     // Cleanup on component unmount
     return () => {
       window.removeEventListener("resize", handleResize);
+      sphere.geometry.dispose();
+      sphere.material.dispose();
       renderer.dispose();
       mountRef.current?.removeChild(renderer.domElement);
     };

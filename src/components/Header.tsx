@@ -4,7 +4,7 @@ const Header = () => {
   return (
     <header className="bg-mocha text-ivory shadow-md py-4">
       <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-2xl font-serif">
+        <h1 className="text-2xl">
           <Link href="/">Globetrotter</Link>
         </h1>
         <nav className="space-x-6">
