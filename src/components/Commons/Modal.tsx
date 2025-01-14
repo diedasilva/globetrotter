@@ -66,7 +66,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
       {/* Arrière-plan sombre */}
       <div
         ref={overlayRef}
-        className="absolute inset-0 bg-black bg-opacity-20"
+        className="absolute inset-0 bg-black bg-opacity-40"
         style={{ opacity: 0 }}
       ></div>
 

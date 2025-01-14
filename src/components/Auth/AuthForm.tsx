@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation"; // Pour gérer la redirection
+import { useRouter } from "next/navigation";
 import Button from "@/components/Commons/Button";
 import Input from "@/components/Commons/Input";
 import { handleLogin, registerUser } from "@/utils/AuthFunctions";
 
 const AuthForm: React.FC = () => {
   const router = useRouter();
-  const [isRegister, setIsRegister] = useState(false); // Mode inscription/connexion
+  const [isRegister, setIsRegister] = useState(false); 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -28,28 +28,28 @@ const AuthForm: React.FC = () => {
     e.preventDefault();
     setError(null);
     console.log(formData);
-
+    setIsLoading(true);
     if (isRegister) {
-      // Vérifie que les mots de passe correspondent
+
       if (formData.password !== formData.confirmPassword) {
         setError("Passwords do not match!");
         return;
       }
 
-      // Appelle la fonction `registerUser`
       await registerUser(
         formData.email,
         formData.password,
         formData.name,
         setError,
         setIsLoading,
-        handleLogin, // Passe la fonction `handleLogin`
+        handleLogin,
         router
       );
     } else {
-      // Appelle la fonction `handleLogin`
+
       await handleLogin(formData.email, formData.password, setError, router);
     }
+    setIsLoading(false);
   };
 
   return (
@@ -122,7 +122,7 @@ const AuthForm: React.FC = () => {
         <div className="space-y-2">
           <Button type="submit" variant="primary" disabled={isLoading}>
             {isLoading ? (
-              <div className="loader mx-auto"></div> // Loader
+              <div className="loader mx-auto"></div>
             ) : isRegister ? (
               "Sign Up"
             ) : (

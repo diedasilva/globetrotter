@@ -4,7 +4,7 @@ import { gsap } from "gsap";
 interface ButtonProps {
   type?: "button" | "submit" | "reset";
   onClick?: () => void;
-  variant?: "primary" | "secondary" | "tertiary";
+  variant?: "primary" | "secondary" | "tertiary" | "danger" | "success" | "warning" | "outline" | "subtle";
   className?: string;
   children: ReactNode;
   animatedText?: string;
@@ -65,6 +65,7 @@ const Button: React.FC<ButtonProps> = ({
       "bg-transparent text-[var(--color-mocha-mousse)] hover:bg-[var(--color-ivory)] border border-[var(--color-mocha-mousse)] hover:text-[var(--color-taupe)]",
     subtle:
       "bg-[var(--color-sand)] text-[var(--color-mocha-mousse)] hover:bg-[var(--color-taupe)] hover:text-[var(--color-ivory)]",
+
   };
 
   return (

@@ -19,11 +19,11 @@ export default {
       fontFamily: {
         sans: ["Montserrat", "sans-serif"],
         serif: ["Merriweather", "serif"],
-		mono: ["'Courier Prime'", "monospace"],
+        mono: ["'Courier Prime'", "monospace"],
       },
       borderRadius: {
         soft: "5px",
-		medium:	"8px",
+        medium: "8px",
       },
     },
   },

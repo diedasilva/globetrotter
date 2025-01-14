@@ -16,6 +16,7 @@ export default function GlobeComponent() {
     if (!mountRef.current || isInitialized.current) return;
 
     isInitialized.current = true;
+
     // Scene setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -46,7 +47,7 @@ export default function GlobeComponent() {
       })
     );
 
-    // Create a atmosphere
+    // Create an atmosphere
     const atmosphere = new THREE.Mesh(
       new THREE.SphereGeometry(5, 50, 50),
       new THREE.ShaderMaterial({
@@ -58,33 +59,26 @@ export default function GlobeComponent() {
     );
 
     atmosphere.scale.set(1.1, 1.1, 1.1);
-
     scene.add(atmosphere);
 
     const group = new THREE.Group();
     group.add(sphere);
     scene.add(group);
 
-    //Stars background
+    // Stars background
     const starsGeometry = new THREE.BufferGeometry();
-    const starsMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
-    });
-
-    const starVertices = [];
-
-    for (let i = 0; i < 10000; i++) {
-      const x = (Math.random() - 0.5) * 2000;
-      const y = (Math.random() - 0.5) * 2000;
-      const z = -Math.random() * 2000;
-      starVertices.push(x, y, z);
-    }
+    const starVertices = Array.from({ length: 10000 }, () => [
+      (Math.random() - 0.5) * 2000,
+      (Math.random() - 0.5) * 2000,
+      -Math.random() * 2000,
+    ]).flat();
 
     starsGeometry.setAttribute(
       "position",
       new THREE.Float32BufferAttribute(starVertices, 3)
     );
 
+    const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff });
     const stars = new THREE.Points(starsGeometry, starsMaterial);
     scene.add(stars);
 
@@ -93,15 +87,12 @@ export default function GlobeComponent() {
     let isMouseDown = false;
     let isMouseMoving = false;
 
-    const mouse = {
-      x: 0,
-      y: 0,
-    };
+    const mouse = { x: 0, y: 0 };
 
     // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
-      
+
       if (!isMouseDown || !isMouseMoving) {
         sphere.rotation.y += 0.0002;
       }
@@ -115,7 +106,7 @@ export default function GlobeComponent() {
     };
     animate();
 
-    // Handle mouse movement
+    // Event handlers
     const onMouseMove = (event: MouseEvent) => {
       if (isMouseDown) {
         isMouseMoving = true;
@@ -124,6 +115,23 @@ export default function GlobeComponent() {
       }
     };
 
+    const handleZoom = (event: WheelEvent) => {
+      event.preventDefault();
+      const newZoom = camera.position.z + event.deltaY * 0.01;
+      gsap.to(camera.position, {
+        z: Math.max(5, Math.min(50, newZoom)),
+        duration: 0.5,
+        ease: "power3.out",
+      });
+    };
+
+    const handleResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+
+    // Event listeners
     document.addEventListener("mousedown", () => {
       isMouseDown = true;
       isMouseMoving = false;
@@ -136,35 +144,14 @@ export default function GlobeComponent() {
       document.removeEventListener("mousemove", onMouseMove);
     });
 
-    // Change cursor on hover
-    renderer.domElement.addEventListener("mouseenter", () => {
-      renderer.domElement.style.cursor = "grab";
-    });
-
-    renderer.domElement.addEventListener("mouseleave", () => {
-      renderer.domElement.style.cursor = "default";
-    });
-
-    renderer.domElement.addEventListener("mousedown", () => {
-      renderer.domElement.style.cursor = "grabbing";
-    });
-
-    renderer.domElement.addEventListener("mouseup", () => {
-      renderer.domElement.style.cursor = "grab";
-    });
-
-    // Handle resizing
-    const handleResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    };
-
+    window.addEventListener("wheel", handleZoom);
     window.addEventListener("resize", handleResize);
 
-    // Cleanup on component unmount
+    // Cleanup on unmount
     return () => {
       window.removeEventListener("resize", handleResize);
+      document.removeEventListener("mousedown", () => {});
+      document.removeEventListener("mouseup", () => {});
       sphere.geometry.dispose();
       sphere.material.dispose();
       renderer.dispose();
