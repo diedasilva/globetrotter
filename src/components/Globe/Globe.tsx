@@ -7,6 +7,7 @@ import vertexShader from "./shaders/vertex.glsl";
 import fragmentShader from "./shaders/fragment.glsl";
 import atmosphereFragmentShader from "./shaders/atmosphereFragment.glsl";
 import atmosphereVertexShader from "./shaders/atmosphereVertex.glsl";
+import { latLonToVector3 } from "./GlobeHelpers";
 
 export default function GlobeComponent() {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -62,8 +63,41 @@ export default function GlobeComponent() {
     scene.add(atmosphere);
 
     const group = new THREE.Group();
-    group.add(sphere);
     scene.add(group);
+
+    // Add Flags
+    const flagsData = [
+      { lat: 48.8566, lon: 2.3522, country: "France" }, // Paris
+      { lat: 40.7128, lon: -74.006, country: "USA" }, // New York
+      { lat: 35.6895, lon: 139.6917, country: "Japan" }, // Tokyo
+    ];
+
+    // Create a flag for each country and add to the group
+    flagsData.forEach(({ lat, lon, country }) => {
+      const position = latLonToVector3(lat, lon, 5.05); // Position slightly above the surface
+      console.log(`Flag at ${country}:`, position);
+      const textureLoader = new THREE.TextureLoader();
+      const flagTexture = textureLoader.load(
+        `/flag.svg`,
+        () => {
+          const flag = new THREE.Mesh(
+            new THREE.PlaneGeometry(1, 0.6), // Taille ajustée
+            new THREE.MeshBasicMaterial({
+              map: flagTexture, // Appliquez la texture SVG
+              transparent: true, // Pour gérer les parties transparentes
+              side: THREE.DoubleSide, // Rendre visible des deux côtés
+            })
+          );
+
+          flag.position.copy(position);
+          flag.lookAt(new THREE.Vector3(0, 0, 0)); // Orient towards the globe's center
+          sphere.add(flag);
+        }
+      );
+    });
+
+    // Add the globe to the group
+    group.add(sphere);
 
     // Stars background
     const starsGeometry = new THREE.BufferGeometry();
@@ -104,6 +138,7 @@ export default function GlobeComponent() {
       });
       renderer.render(scene, camera);
     };
+
     animate();
 
     // Event handlers

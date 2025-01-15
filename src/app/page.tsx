@@ -2,11 +2,14 @@
 import Button from "@/components/Commons/Button";
 import Modal from "@/components/Commons/Modal";
 import AuthForm from "@/components/Auth/AuthForm";
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import MapComponent from "@/components/MapComponent/MapComponent";
+import gsap from "gsap";
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const rangeRef = useRef(null);
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -26,9 +29,67 @@ export default function Home() {
       })
       .catch((err) => console.error("Erreur de géolocalisation :", err));
   }, []);
+
+  const [mapLongitude, setMapLongitude] = useState(coords.longitude);
+
+  const [showRange, setShowRange] = useState(false);
+
+  const handleClickSettingsButton = () => {
+    setShowRange(!showRange);
+  };
+
+  useEffect(() => {
+    if (showRange) {
+      gsap.fromTo(
+        rangeRef.current,
+        {
+          opacity: 0,
+          y: -20,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.3,
+          ease: "power2.out",
+        }
+      );
+    } else {
+      gsap.to(rangeRef.current, {
+        opacity: 0,
+        y: -20,
+        duration: 0.2,
+        ease: "power2.in",
+      });
+    }
+  }, [showRange]);
   //console.log("Coordonnées récupérées :", coords);
   return (
     <main className="min-h-screen flex flex-col items-center justify-center text-center">
+      <div className="absolute flex flex-col gap-2 z-10 top-[1vw] right-[1vw] flex-wrap-reverse">
+        <Button
+          variant="tertiary"
+          basic={false}
+          className="p-2 max-w-[2vw]"
+          onClick={() => handleClickSettingsButton()}
+        >
+          <Image src="/settings.svg" alt="settings" width={20} height={20} />
+        </Button>
+        <div ref={rangeRef} style={{ opacity: 0 }}>
+          {showRange && (
+            <div className="rounded-soft bg-ivory bg-opacity-40 p-2 z-10">
+              <input
+                type="range"
+                min={-180}
+                max={180}
+                step={1}
+                value={mapLongitude}
+                onChange={(e) => setMapLongitude(parseFloat(e.target.value))}
+                className="w-full cursor-pointer text-mocha"
+              />
+            </div>
+          )}
+        </div>
+      </div>
       <div className="rounded-soft bg-ivory bg-opacity-40 p-4 z-10">
         <h1 className="text-4xl text-mocha mb-4">GlobeTrotter</h1>
         <p className="text-charcoal text-lg my-2 font-mono">
@@ -46,7 +107,7 @@ export default function Home() {
           <AuthForm />
         </Modal>
       </div>
-      <MapComponent longitude={coords.longitude} />
+      <MapComponent longitude={mapLongitude} />
     </main>
   );
 }

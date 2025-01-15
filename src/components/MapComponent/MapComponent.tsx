@@ -81,7 +81,7 @@ const SuperPlanisphere: React.FC<SuperPlanisphereProps> = ({ longitude }) => {
       >
         <div
           style={{
-            backgroundImage: "url('/Carte-Monde-Vintage_Map.png')",
+            backgroundImage: "url('/Carte-Monde-Vintage_Map2.png')",
             backgroundRepeat: "no-repeat",
             backgroundSize: "contain",
             width: "300vw",

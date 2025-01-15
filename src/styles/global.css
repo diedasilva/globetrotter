@@ -81,6 +81,9 @@ footer {
 .rounded-div-nav-open{
   border-radius: 0.5rem 0 0.5rem 0.5rem;
 }
+input[type="range"] {
+  accent-color: var(--color-mocha-mousse);
+}
 
 @keyframes spin {
   0% {

@@ -4,11 +4,20 @@ import { gsap } from "gsap";
 interface ButtonProps {
   type?: "button" | "submit" | "reset";
   onClick?: () => void;
-  variant?: "primary" | "secondary" | "tertiary" | "danger" | "success" | "warning" | "outline" | "subtle";
+  variant?:
+    | "primary"
+    | "secondary"
+    | "tertiary"
+    | "danger"
+    | "success"
+    | "warning"
+    | "outline"
+    | "subtle";
   className?: string;
   children: ReactNode;
   animatedText?: string;
   disabled?: boolean;
+  basic?: boolean;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -18,6 +27,7 @@ const Button: React.FC<ButtonProps> = ({
   className = "",
   children,
   disabled,
+  basic = true,
 }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -46,15 +56,18 @@ const Button: React.FC<ButtonProps> = ({
     if (onClick) onClick();
   };
 
+  //px-4 py-2
   const baseStyle =
-    "relative overflow-hidden px-4 py-2 rounded-soft transition-all duration-300 ease-in-out focus:outline-none";
+    "relative overflow-hidden " +
+    (basic ? "px-4 py-2 " : "") +
+    "rounded-soft transition-all duration-300 ease-in-out focus:outline-none";
   const variants = {
     primary:
       "bg-[var(--color-mocha-mousse)] text-[var(--color-ivory)] hover:bg-[var(--color-taupe)] hover:text-[var(--color-ivory)]",
     secondary:
-      "bg-[var(--color-taupe)] text-[var(--color-ivory)] hover:bg-[var(--color-mocha-mousse)]",
+      "bg-[var(--color-ivory)] text-[var(--color-mocha-mousse)] hover:bg-[var(--color-mocha-mousse)]",
     tertiary:
-      "bg-transparent text-[var(--color-mocha-mousse)] hover:text-[var(--color-taupe)] border border-[var(--color-mocha-mousse)]",
+      "text-[var(--color-ivory)] hover:text-[var(--color-mocha-mousse)] hover:bg-[var(--color-mocha-mousse)] border",
     danger:
       "bg-red-600 text-[var(--color-ivory)] hover:bg-red-700 hover:text-[var(--color-ivory)]",
     success:
@@ -65,7 +78,6 @@ const Button: React.FC<ButtonProps> = ({
       "bg-transparent text-[var(--color-mocha-mousse)] hover:bg-[var(--color-ivory)] border border-[var(--color-mocha-mousse)] hover:text-[var(--color-taupe)]",
     subtle:
       "bg-[var(--color-sand)] text-[var(--color-mocha-mousse)] hover:bg-[var(--color-taupe)] hover:text-[var(--color-ivory)]",
-
   };
 
   return (
@@ -73,7 +85,7 @@ const Button: React.FC<ButtonProps> = ({
       ref={buttonRef}
       type={type}
       onClick={handleClick}
-      className={`${baseStyle} ${variants[variant]} ${className}`}
+      className={`${className} ${baseStyle} ${variants[variant]} `}
       disabled={disabled}
     >
       {children}

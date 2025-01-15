@@ -1,23 +1,20 @@
+// GlobeHelpers.tsx
 import * as THREE from "three";
 
-export function addFlag(scene: THREE.Scene, radius: number, lat: number, lon: number) {
-  const flagMaterial = new THREE.SpriteMaterial({
-    map: new THREE.TextureLoader().load("/flag.png"), // Chemin vers l'image du drapeau
-    transparent: true,
-  });
-  const flag = new THREE.Sprite(flagMaterial);
+/**
+ * Convert latitude and longitude to a THREE.Vector3 position on a sphere.
+ * @param lat Latitude in degrees
+ * @param lon Longitude in degrees
+ * @param radius Radius of the sphere
+ * @returns THREE.Vector3 representing the 3D position
+ */
+export const latLonToVector3 = (lat: number, lon: number, radius: number): THREE.Vector3 => {
+  const phi = (90 - lat) * (Math.PI / 180); // Convert latitude to polar angle
+  const theta = (lon + 180) * (Math.PI / 180); // Convert longitude to azimuthal angle
 
-  // Convertir latitude et longitude en coordonnées 3D
-  const phi = (90 - lat) * (Math.PI / 180); // Latitude en radians
-  const theta = (lon + 180) * (Math.PI / 180); // Longitude en radians
-
-  // Calculer les coordonnées
-  const x = radius * Math.sin(phi) * Math.cos(theta);
+  const x = -(radius * Math.sin(phi) * Math.cos(theta));
   const y = radius * Math.cos(phi);
   const z = radius * Math.sin(phi) * Math.sin(theta);
 
-  flag.position.set(x, y, z);
-  flag.scale.set(0.5, 0.5, 0.5); // Taille du drapeau
-
-  scene.add(flag);
-}
+  return new THREE.Vector3(x, y, z);
+};
