@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import MapEffects from "./MapEffects";
+import { convertCoordsToTopAndLeftValues, Coordinates } from "@/utils/Map";
 
 interface Location {
   name: string;
@@ -10,18 +11,21 @@ interface Location {
 }
 
 interface SuperPlanisphereProps {
-  longitude: number; 
+  longitude: number;
 }
 
 const SuperPlanisphere: React.FC<SuperPlanisphereProps> = ({ longitude }) => {
-  const [translateX, setTranslateX] = useState(-100); 
+  const [translateX, setTranslateX] = useState(-100);
   const [journeys, setJourneys] = useState<
     { coordsA: Location; coordsB: Location }[]
   >([]);
+  const [coordsA, setCoordsA] = useState<Coordinates>({ latitude: 0, longitude: 0 });
+  const [isCoordsASet, setIsCoordsASet] = useState(false);
+
 
   const generateRandomPoint = (): Location => {
-    const latitudeY = (Math.random() * 140 - 70).toFixed(6); 
-    const longitudeX = ((Math.random() * 320 - 160 + longitude).toFixed(6)) ; 
+    const latitudeY = (Math.random() * 140 - 70).toFixed(6);
+    const longitudeX = (Math.random() * 320 - 160 + longitude).toFixed(6);
     console.log(`Point(x:${longitudeX},y:${latitudeY})`);
     return {
       name: `Point(${latitudeY},${longitudeX})`,
@@ -34,6 +38,10 @@ const SuperPlanisphere: React.FC<SuperPlanisphereProps> = ({ longitude }) => {
     // Dernier point de départ
     const lastJourney = journeys[journeys.length - 1];
     const coordsA = lastJourney ? lastJourney.coordsB : generateRandomPoint();
+    if (!isCoordsASet) {
+      setCoordsA(coordsA);
+      setIsCoordsASet(true); // Marquer coordsA comme défini
+    }
     const coordsB = generateRandomPoint();
 
     setJourneys((prevJourneys) => [...prevJourneys, { coordsA, coordsB }]);
@@ -83,6 +91,21 @@ const SuperPlanisphere: React.FC<SuperPlanisphereProps> = ({ longitude }) => {
             position: "relative",
           }}
         >
+          <div
+            className="Starter text-white"
+            style={{
+              position: "absolute",
+              top: `${convertCoordsToTopAndLeftValues(coordsA).top}vh`,
+              left: `${convertCoordsToTopAndLeftValues(coordsA).left}vw`,
+              width: "20px",
+              height: "20px", // Change to your flag image
+              backgroundSize: "contain",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center",
+            }}
+          >
+            X
+          </div>
           {journeys.map((journey, index) => (
             <MapEffects
               key={index}

@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-
-interface Coordinates {
-  latitude: number;
-  longitude: number;
-}
-
+import { Coordinates,generateBezierCurve,convertCoordsToTopAndLeftValues } from "@/utils/Map";
 interface Flag {
   coords: Coordinates;
   rating: number; // Ajout de la note
@@ -19,51 +14,17 @@ interface MapEffectsProps {
   onJourneyEnd?: () => void;
 }
 
-const convertCoordsToTopAndLeftValues = (coords: Coordinates) => {
-  const { latitude, longitude } = coords;
-  const x = ((longitude + 180) / 360) * 100 + 100;
-  const y = ((90 - latitude) / 180) * 100;
-  return { top: y, left: x };
-};
-
-const generateBezierCurve = (
-  start: Coordinates,
-  end: Coordinates,
-  controlOffset: number,
-  steps: number
-): Coordinates[] => {
-  const control = {
-    latitude: (start.latitude + end.latitude) / 2 + controlOffset,
-    longitude: (start.longitude + end.longitude) / 2,
-  };
-
-  const points: Coordinates[] = [];
-  for (let t = 0; t <= 1; t += 1 / steps) {
-    const x =
-      Math.pow(1 - t, 2) * start.longitude +
-      2 * (1 - t) * t * control.longitude +
-      Math.pow(t, 2) * end.longitude;
-    const y =
-      Math.pow(1 - t, 2) * start.latitude +
-      2 * (1 - t) * t * control.latitude +
-      Math.pow(t, 2) * end.latitude;
-    points.push({ longitude: x, latitude: y });
-  }
-  return points;
-};
-
 const MapEffects: React.FC<MapEffectsProps> = ({
   coordsA,
   coordsB,
   stepDistance = 3,
-  curveIntensity = 10,
+  curveIntensity = 20,
   onJourneyEnd,
 }) => {
   const [steps, setSteps] = useState<Coordinates[]>([]);
   const [fadeOutSteps, setFadeOutSteps] = useState<Set<number>>(new Set());
   const [flags, setFlags] = useState<Flag[]>([]);
   const [hoveredFlag, setHoveredFlag] = useState<Flag | null>(null); // Stocke le drapeau survolé
-
 
   // Génère les points de la courbe
   useEffect(() => {
@@ -73,7 +34,12 @@ const MapEffects: React.FC<MapEffectsProps> = ({
     );
     const numSteps = Math.ceil(totalDistance / stepDistance);
 
-    const curvePoints = generateBezierCurve(coordsA, coordsB, curveIntensity, numSteps);
+    const curvePoints = generateBezierCurve(
+      coordsA,
+      coordsB,
+      curveIntensity,
+      numSteps
+    );
     setSteps(curvePoints);
   }, [coordsA, coordsB, stepDistance, curveIntensity]);
 
@@ -90,20 +56,23 @@ const MapEffects: React.FC<MapEffectsProps> = ({
     }
   }, [steps]);
 
-const handleStepAnimationComplete = (index: number) => {
-  // Vérifie si l'étape est la dernière du trajet
-  const isLastStep = index === steps.length - 1;
+  const handleStepAnimationComplete = (index: number) => {
+    if (index === steps.length - 1) {
+      setFadeOutSteps((prev) => {
+        const newSet = new Set(prev);
+        steps.forEach((_, i) => newSet.add(i));
+        return newSet;
+      });
 
-  if (isLastStep) {
-    // Délai pour laisser les steps visibles avant suppression
-    setTimeout(() => {
-      setFadeOutSteps(new Set([...Array(steps.length).keys()])); // Supprime tous les steps
-      if (onJourneyEnd) onJourneyEnd(); // Déclenche le prochain trajet
-    }, 1500); // Ajustez la durée (en millisecondes) selon vos besoins
-  }
-};
-
-  
+      // Supprime les steps après un délai
+      setTimeout(() => {
+        if (onJourneyEnd) onJourneyEnd();
+      }, 3000);
+      setTimeout(() => {
+        setSteps([]);
+      }, 30000);
+    }
+  };
 
   return (
     <>
@@ -132,20 +101,23 @@ const handleStepAnimationComplete = (index: number) => {
               backgroundRepeat: "no-repeat",
               backgroundPosition: "center",
             }}
-            initial={{ opacity: 0 }}
+            initial={{
+              opacity: 0,
+              x: index % 2 === 0 ? -10 : 10, // Alterne la position de départ sur l'axe X
+              y: index % 2 === 0 ? -10 : 10, // Alterne la position de départ sur l'axe Y
+            }}
             animate={{
               opacity: fadeOutSteps.has(index) ? 0 : 1,
               transform: `rotate(${normalizedAngle}deg) ${flip}`,
             }}
             transition={{
-              duration: 2.5,
+              duration: 1.5,
               delay: index * 0.2,
             }}
             onAnimationComplete={() => handleStepAnimationComplete(index)}
           />
         );
       })}
-
       {flags.map((flag, index) => {
         const { top, left } = convertCoordsToTopAndLeftValues(flag.coords);
         return (
@@ -172,7 +144,7 @@ const handleStepAnimationComplete = (index: number) => {
             transition={{
               duration: 0.5,
             }}
-            onMouseEnter={() => setHoveredFlag(flag)} 
+            onMouseEnter={() => setHoveredFlag(flag)}
             onMouseLeave={() => setHoveredFlag(null)}
           />
         );
@@ -183,8 +155,12 @@ const handleStepAnimationComplete = (index: number) => {
           className="rating bg-ivory bg-opacity-40 z-20"
           style={{
             position: "absolute",
-            top: `${convertCoordsToTopAndLeftValues(hoveredFlag.coords).top - 5}vh`,
-            left: `${convertCoordsToTopAndLeftValues(hoveredFlag.coords).left}vw`,
+            top: `${
+              convertCoordsToTopAndLeftValues(hoveredFlag.coords).top - 5
+            }vh`,
+            left: `${
+              convertCoordsToTopAndLeftValues(hoveredFlag.coords).left
+            }vw`,
             color: "black",
             padding: "5px 10px",
             borderRadius: "5px",
@@ -198,7 +174,7 @@ const handleStepAnimationComplete = (index: number) => {
             duration: 0.3,
           }}
         >
-          ⭐ {hoveredFlag.rating}/5
+          Rate : {hoveredFlag.rating}/5
         </motion.div>
       )}
     </>
