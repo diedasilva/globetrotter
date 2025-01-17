@@ -79,7 +79,7 @@ footer {
   border-radius: 0.5rem 0.5rem 0 0;
 }
 .rounded-div-nav-open{
-  border-radius: 0.5rem 0 0.5rem 0.5rem;
+  border-radius: 0rem 0 0.5rem 0.5rem;
 }
 input[type="range"] {
   accent-color: var(--color-mocha-mousse);
@@ -92,4 +92,39 @@ input[type="range"] {
   100% {
     transform: rotate(360deg);
   }
+}
+
+
+.loading-text {
+  display: inline-block;
+}
+
+.dots::after {
+  content: "";
+  animation: dots-animation 2s infinite steps(3);
+}
+
+@keyframes dots-animation {
+  0% {
+    content: "."; /* Un point */
+  }
+  33% {
+    content: ".."; /* Deux points */
+  }
+  66% {
+    content: "..."; /* Trois points */
+  }
+  100% {
+    content: ""; /* Retour vide */
+  }
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield; /* Pour Firefox */
 }

@@ -14,9 +14,10 @@ datasource db {
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
+  id           String        @id @default(cuid())
   email        String        @unique
   name         String?
+  image        String?
   password     String
   destinations Destination[]
   createdAt    DateTime      @default(now())
@@ -24,14 +25,25 @@ model User {
 }
 
 model Destination {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  name        String
-  latitude    Float
-  longitude   Float
-  review      String
-  globalScore Float
-  description String
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id])
+  latitude  Float
+  longitude Float
+  city      String
+  country   String
+  title       String?
+  review      String?
+  globalScore Float?
+  description String?
   createdAt   DateTime @default(now())
+}
+
+model PossibleDestination {
+  id        String   @id @default(cuid())
+  city      String // Nom de la ville
+  country   String // Nom du pays
+  latitude  Float
+  longitude Float
+  createdAt DateTime @default(now())
 }

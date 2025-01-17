@@ -7,9 +7,10 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  className?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, className }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -73,10 +74,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
       {/* Contenu de la modal */}
       <div
         ref={modalRef}
-        className="bg-white rounded-lg w-96 shadow-lg z-10"
+        className={`bg-white rounded-lg w-96 shadow-lg z-10 ${className || ''}`}
         style={{ opacity: 0, scale: 0.8 }}
         onClick={(e) => e.stopPropagation()} 
-      >
+            >
         {children}
       </div>
     </div>

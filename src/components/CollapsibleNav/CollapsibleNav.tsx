@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
+
 import gsap from "gsap";
 import Image from "next/image";
+import Modal from "../Commons/Modal";
+import DynamicModalContent from "./DynamicModalContent/DynamicModalContent";
 
 interface CollapsibleNavProps {
   userName: string;
   userImage?: string;
-  menuItems: { label: string; href: string; onClick?: () => void }[];
+  menuItems: { label: string; onClick?: () => void }[];
 }
 
 const CollapsibleNav: React.FC<CollapsibleNavProps> = ({
@@ -20,7 +22,18 @@ const CollapsibleNav: React.FC<CollapsibleNavProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const [isHover, setIsHover] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
+
+  const [modalisOpen, setModalisOpen] = useState(false);
+  const [modalLabel, setModalLabel] = useState<string>("");
+
+  const buttonRef = useRef<HTMLButtonElement>(null); // Référence pour le bouton
+  const [menuWidth, setMenuWidth] = useState<number>(0);
+
   useEffect(() => {
+    if (isOpen && menuRef.current && buttonRef.current) {
+      const buttonWidth = buttonRef.current.getBoundingClientRect().width;
+      setMenuWidth(buttonWidth); // Définir la largeur du bouton comme largeur du menu
+    }
     if (isOpen && menuRef.current) {
       gsap.fromTo(
         menuRef.current,
@@ -55,10 +68,12 @@ const CollapsibleNav: React.FC<CollapsibleNavProps> = ({
       {/* Burger Icon */}
       <span ref={navRef}>
         <button
+          ref={buttonRef}
           className={`flex flex-end items-center space-x-2 rounded-lg hover:bg-gray-100 bg-opacity-90 p-2 ${
             isOpen
               ? "bg-white rounded-button-nav-open"
-              : "border border-gray-200"}`}
+              : "border border-gray-200"
+          }`}
           onMouseEnter={() => setIsHover(true)}
           onMouseLeave={() => setIsHover(false)}
           onClick={() => setIsOpen((prev) => !prev)}
@@ -90,25 +105,38 @@ const CollapsibleNav: React.FC<CollapsibleNavProps> = ({
         {isOpen && (
           <div
             ref={menuRef}
-            className="absolute right-4 top-16 w-48 bg-white border border-gray-200 rounded-div-nav-open shadow-lg bg-opacity-90"
+            style={{ width: `${menuWidth}px` }}
+            className="absolute right-4 top-16 bg-white border border-gray-200 rounded-div-nav-open shadow-lg bg-opacity-90"
           >
             <ul>
               {menuItems.map((item) => (
                 <li key={item.label}>
-                  <Link
-                    href={item.href}
+                  <button
                     onClick={(e) => {
-                      if (item.onClick) {e.preventDefault(); item.onClick();} 
+                      if (item.onClick) {
+                        e.preventDefault();
+                        item.onClick();
+                      } else {
+                        setModalLabel(item.label);
+                        setModalisOpen(true);
+                      }
                     }}
-                    className="block px-4 py-2 hover:bg-gray-100"
+                    className="w-full bg-transparent p-2 hover:bg-gray-100"
                   >
                     {item.label}
-                  </Link>
+                  </button>
                 </li>
               ))}
             </ul>
           </div>
         )}
+        <Modal
+          isOpen={modalisOpen}
+          onClose={() => setModalisOpen(false)}
+          className="bg-opacity-90"
+        >
+          <DynamicModalContent label={modalLabel} />
+        </Modal>
       </span>
     </div>
   );

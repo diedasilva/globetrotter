@@ -7,11 +7,23 @@ import vertexShader from "./shaders/vertex.glsl";
 import fragmentShader from "./shaders/fragment.glsl";
 import atmosphereFragmentShader from "./shaders/atmosphereFragment.glsl";
 import atmosphereVertexShader from "./shaders/atmosphereVertex.glsl";
-import { latLonToVector3 } from "./GlobeHelpers";
+import { createFlag } from "./Flag";
+import { useDestinations } from "@/hooks/useDestinations";
+interface Destination {
+  latitude: number;
+  longitude: number;
+  country: string;
+  city: string;
+}
 
 export default function GlobeComponent() {
   const mountRef = useRef<HTMLDivElement>(null);
   const isInitialized = useRef(false);
+
+  const sphereRef = useRef<THREE.Mesh | null>(null);
+  const flagsGroupRef = useRef<THREE.Group | null>(null);
+
+  const { destinations, error, isLoading } = useDestinations();
 
   useEffect(() => {
     if (!mountRef.current || isInitialized.current) return;
@@ -48,6 +60,8 @@ export default function GlobeComponent() {
       })
     );
 
+    sphereRef.current = sphere;
+
     // Create an atmosphere
     const atmosphere = new THREE.Mesh(
       new THREE.SphereGeometry(5, 50, 50),
@@ -62,46 +76,26 @@ export default function GlobeComponent() {
     atmosphere.scale.set(1.1, 1.1, 1.1);
     scene.add(atmosphere);
 
+    const flagsGroup = new THREE.Group();
+    flagsGroupRef.current = flagsGroup;
+    sphere.add(flagsGroup);
+
     const group = new THREE.Group();
     scene.add(group);
 
-    // Add Flags
-    const flagsData = [
-      { lat: 48.8566, lon: 2.3522, country: "France" }, // Paris
-      { lat: 40.7128, lon: -74.006, country: "USA" }, // New York
-      { lat: 35.6895, lon: 139.6917, country: "Japan" }, // Tokyo
-    ];
+    // Add ambient light to see the flags
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+    scene.add(ambientLight);
 
-    // Create a flag for each country and add to the group
-    flagsData.forEach(({ lat, lon, country }) => {
-      const position = latLonToVector3(lat, lon, 5.05); // Position slightly above the surface
-      console.log(`Flag at ${country}:`, position);
-      const textureLoader = new THREE.TextureLoader();
-      const flagTexture = textureLoader.load(
-        `/flag.svg`,
-        () => {
-          const flag = new THREE.Mesh(
-            new THREE.PlaneGeometry(1, 0.6), // Taille ajustée
-            new THREE.MeshBasicMaterial({
-              map: flagTexture, // Appliquez la texture SVG
-              transparent: true, // Pour gérer les parties transparentes
-              side: THREE.DoubleSide, // Rendre visible des deux côtés
-            })
-          );
-
-          flag.position.copy(position);
-          flag.lookAt(new THREE.Vector3(0, 0, 0)); // Orient towards the globe's center
-          sphere.add(flag);
-        }
-      );
-    });
-
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    directionalLight.position.set(10, 10, 10);
+    scene.add(directionalLight);
     // Add the globe to the group
     group.add(sphere);
 
     // Stars background
     const starsGeometry = new THREE.BufferGeometry();
-    const starVertices = Array.from({ length: 10000 }, () => [
+    const starVertices = Array.from({ length: 20000 }, () => [
       (Math.random() - 0.5) * 2000,
       (Math.random() - 0.5) * 2000,
       -Math.random() * 2000,
@@ -193,6 +187,26 @@ export default function GlobeComponent() {
       mountRef.current?.removeChild(renderer.domElement);
     };
   }, []);
+
+  useEffect(() => {
+    if (!sphereRef.current || !flagsGroupRef.current || !destinations) return;
+
+    // On supprime d’abord tous les anciens drapeaux
+    flagsGroupRef.current.clear();
+
+    // On crée un drapeau pour chaque destination
+    destinations.forEach((dest: Destination) => {
+      const flag = createFlag(dest.latitude, dest.longitude, 5.05, {
+        cityName: dest.city,
+        flagColor: "white",
+        mastColor: "white",
+        flagWidth: 0.5,
+        flagHeight: 0.4,
+        flagTextureUrl: `/flags/${dest.country}.svg`,
+      });
+      flagsGroupRef.current?.add(flag);
+    });
+  }, [destinations]);
 
   return <div ref={mountRef} style={{ width: "100vw", height: "100vh" }} />;
 }

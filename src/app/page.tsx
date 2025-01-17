@@ -65,6 +65,7 @@ export default function Home() {
   //console.log("Coordonnées récupérées :", coords);
   return (
     <main className="min-h-screen flex flex-col items-center justify-center text-center">
+      
       <div className="absolute flex flex-col gap-2 z-10 top-[1vw] right-[1vw] flex-wrap-reverse">
         <Button
           variant="tertiary"

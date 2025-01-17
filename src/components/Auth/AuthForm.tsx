@@ -8,7 +8,7 @@ import { handleLogin, registerUser } from "@/utils/AuthFunctions";
 
 const AuthForm: React.FC = () => {
   const router = useRouter();
-  const [isRegister, setIsRegister] = useState(false); 
+  const [isRegister, setIsRegister] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -30,9 +30,9 @@ const AuthForm: React.FC = () => {
     console.log(formData);
     setIsLoading(true);
     if (isRegister) {
-
       if (formData.password !== formData.confirmPassword) {
         setError("Passwords do not match!");
+        setIsLoading(false);
         return;
       }
 
@@ -42,14 +42,18 @@ const AuthForm: React.FC = () => {
         formData.name,
         setError,
         setIsLoading,
-        handleLogin,
         router
       );
     } else {
-
-      await handleLogin(formData.email, formData.password, setError, router);
+      await handleLogin(
+        formData.email,
+        formData.password,
+        setError,
+        setIsLoading,
+        router,
+      );
     }
-    setIsLoading(false);
+    //setIsLoading(false);
   };
 
   return (

@@ -1,95 +1,104 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
-import { prisma } from "@/utils/prisma"; // Assurez-vous que cette importation pointe vers votre fichier Prisma
+import { prisma } from "@/utils/prisma"; // Vérifiez que cela pointe bien vers votre fichier Prisma
 import { Session, SessionStrategy } from "next-auth";
 import { JWT } from "next-auth/jwt";
+import { User } from "next-auth";
+
+interface CustomUser extends User {
+  id: string;
+  email: string;
+  name: string | null;
+}
 
 export const authOptions = {
-  adapter: PrismaAdapter(prisma), // Connecte NextAuth à Prisma
+  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
+        register: { label: "Register", type: "hidden" },
+        name: { label: "Name", type: "text" },
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<CustomUser | null> {
         const { email, password, register, name } = credentials as {
           email: string;
           password: string;
-          register: string;
+          register?: string;
           name?: string;
         };
 
         if (!email || !password) {
-          throw new Error("Missing email or password");
+          throw new Error("Email and password are required.");
         }
 
         if (register === "true") {
-          // Gérer l'inscription
+          // Gestion de l'inscription
           const existingUser = await prisma.user.findUnique({
             where: { email },
           });
 
           if (existingUser) {
-            throw new Error("User already exists");
-          }
-
-          if (!name) {
-            throw new Error("Name is required for registration");
+            throw new Error("A user with this email already exists.");
           }
 
           const hashedPassword = await bcrypt.hash(password, 10);
 
-          const newUser = await prisma.user.create({
+          const user = await prisma.user.create({
             data: {
               email,
+              name: name || null,
               password: hashedPassword,
-              name,
             },
           });
 
           return {
-            id: newUser.id.toString(),
-            email: newUser.email,
-            name: newUser.name,
+            id: user.id,
+            email: user.email,
+            name: user.name,
           };
         } else {
-          // Gérer la connexion
+          // Gestion de la connexion
           const user = await prisma.user.findUnique({
             where: { email },
           });
 
           if (!user) {
-            throw new Error("No user found");
+            throw new Error("No user found with this email.");
           }
 
           const isValid = await bcrypt.compare(password, user.password);
 
           if (!isValid) {
-            throw new Error("Invalid email or password");
+            throw new Error("Invalid email or password.");
           }
 
-          return { id: user.id.toString(), email: user.email, name: user.name };
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+          };
         }
       },
     }),
   ],
   pages: {
-    signIn: "/", // Page de connexion
+    signIn: "/", // Page de connexion personnalisée
     error: "/auth/error", // Page d'erreur personnalisée
   },
   secret: process.env.NEXTAUTH_SECRET, // Clé secrète pour sécuriser les sessions
   session: {
-    strategy: "jwt" as SessionStrategy, // Utilisation de JSON Web Tokens pour les sessions
-    maxAge: 30 * 24 * 60 * 60, // Durée de vie de la session : 30 jours
+    strategy: "jwt" as SessionStrategy, // Utilisation des JWT pour les sessions
+    maxAge: 30 * 24 * 60 * 60, // Durée de vie de la session (30 jours)
   },
   jwt: {
-    maxAge: 30 * 24 * 60 * 60, // Durée de vie des JWT : 30 jours
+    maxAge: 30 * 24 * 60 * 60, // Durée de vie des JWT (30 jours)
   },
   callbacks: {
-    // Ajout d'informations utilisateur à la session
+    // Ajouter des informations personnalisées à la session
     async session({ session, token }: { session: Session; token: JWT }) {
       session.user = {
         id: token.id as string,
@@ -99,7 +108,7 @@ export const authOptions = {
       };
       return session;
     },
-    // Gestion du JWT, ajout d'informations utilisateur
+    // Ajouter des données au JWT
     async jwt({ token, user }: { token: JWT; user?: any }) {
       if (user) {
         token.id = user.id;

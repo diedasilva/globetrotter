@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Destination" ALTER COLUMN "review" DROP NOT NULL,
+ALTER COLUMN "globalScore" DROP NOT NULL,
+ALTER COLUMN "description" DROP NOT NULL,
+ALTER COLUMN "title" DROP NOT NULL;

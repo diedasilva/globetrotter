@@ -1,58 +1,133 @@
+"use client";
+
 import * as THREE from "three";
+import { isValidUrl, latLonToVector3 } from "./GlobeHelpers";
 
-/**
- * Crée un drapeau complet avec mât, texture et animation optionnelle.
- * @param texturePath - Le chemin de la texture (fichier SVG ou image).
- * @param flagSize - Taille du drapeau [width, height].
- * @param poleHeight - Hauteur du mât.
- * @returns Un groupe contenant le mât et le drapeau.
- */
-export const createFlag = (
-  texturePath: string,
-  flagSize: [number, number] = [1, 0.6],
-  poleHeight: number = 1.5
-): THREE.Group => {
+export function createFlag(
+  lat: number,
+  lon: number,
+  radius: number, // Rayon du globe
+  options?: {
+    cityName?: string;
+    flagWidth?: number;
+    flagHeight?: number;
+    flagColor?: string;
+    flagTextureUrl?: string;
+    mastHeight?: number;
+    mastColor?: string;
+  }
+): THREE.Group {
+  const {
+    cityName = "",
+    flagWidth = 0.5,
+    flagHeight = 0.6,
+    flagColor = "white",
+    flagTextureUrl,
+    mastHeight = 1,
+    mastColor = "gray",
+  } = options || {};
+
+  // Convert latitude and longitude to cartesian coordinates
+  const position = latLonToVector3(lat, lon, radius);
+
+  // Create the flag group
   const flagGroup = new THREE.Group();
+  flagGroup.position.copy(position);
 
-  // Charger la texture pour le drapeau
-  const textureLoader = new THREE.TextureLoader();
-  const flagTexture = textureLoader.load(texturePath);
+  // Calculate the direction vector from the globe center to the flag
+  const direction = position.clone().normalize();
+  const up = new THREE.Vector3(0, 1, 0);
+  const quaternion = new THREE.Quaternion().setFromUnitVectors(up, direction);
+  flagGroup.setRotationFromQuaternion(quaternion);
 
-  // Géométrie et matériau du drapeau
-  const flagGeometry = new THREE.PlaneGeometry(flagSize[0], flagSize[1], 10, 10); // Divisions pour l'animation
-  const flagMaterial = new THREE.MeshBasicMaterial({
-    map: flagTexture,
-    transparent: true,
-    side: THREE.DoubleSide,
-  });
+  // Create the mast
+  const mast = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.05, mastHeight),
+    new THREE.MeshStandardMaterial({ color: mastColor })
+  );
+  mast.position.set(0, mastHeight / 2 - flagHeight / 2, 0);
+  flagGroup.add(mast);
 
-  const flagMesh = new THREE.Mesh(flagGeometry, flagMaterial);
-  flagMesh.position.set(flagSize[0] / 2, 0, 0); // Décalage du drapeau par rapport au mât
+  // Create the flag material
+  let flagMaterial;
+  let isValid;
+  if (flagTextureUrl) {
+    isValid = isValidUrl(flagTextureUrl);
+  }
 
-  // Géométrie et matériau du mât
-  const poleGeometry = new THREE.CylinderGeometry(0.05, 0.05, poleHeight, 16);
-  const poleMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
-  const poleMesh = new THREE.Mesh(poleGeometry, poleMaterial);
-  poleMesh.position.set(0, -poleHeight / 2, 0); // Place le mât correctement
+  if (flagTextureUrl && isValid) {
+    const textureLoader = new THREE.TextureLoader();
+    const flagTexture = textureLoader.load(flagTextureUrl);
+    flagMaterial = new THREE.MeshStandardMaterial({
+      map: flagTexture, // Appliquer la texture
+      side: THREE.DoubleSide, // Visible des deux côtés
+    });
+  } else {
+    flagMaterial = new THREE.MeshStandardMaterial({
+      color: flagColor, // Couleur par défaut
+      side: THREE.DoubleSide,
+    });
+  }
 
-  // Ajout au groupe
-  flagGroup.add(poleMesh);
-  flagGroup.add(flagMesh);
+  // Create the flag with waving effect
+  const flagGeometry = new THREE.PlaneGeometry(flagWidth, flagHeight, 20, 20); // Subdivided for waves
+  const flag = new THREE.Mesh(flagGeometry, flagMaterial);
+  // Adjust position relative to mast
+  flag.position.set(flagWidth / 2, mastHeight - flagHeight, 0);
+  flagGroup.add(flag);
 
-  // Animation du drapeau (flottement)
-  const animateFlag = () => {
-    const time = performance.now() * 0.001;
-    const vertices = flagGeometry.attributes.position.array;
-
-    for (let i = 0; i < vertices.length; i += 3) {
-      const y = vertices[i + 1]; // Position Y
-      vertices[i + 2] = Math.sin(time + y) * 0.05; // Vibration sur l'axe Z
+  // Add waving animation
+  const timeOffset = Math.random() * 1000;
+  flag.onBeforeRender = () => {
+    const time = performance.now() / 1000 + timeOffset;
+    const position = flagGeometry.attributes.position;
+    for (let i = 0; i < position.count; i++) {
+      const x = position.getX(i);
+      position.setZ(i, Math.sin(x * 5 + time * 3) * 0.1);
     }
-
-    flagGeometry.attributes.position.needsUpdate = true;
+    position.needsUpdate = true;
   };
 
-  flagGroup.userData.animate = animateFlag;
-
+  // Ajouter le label (si cityName est défini)
+  if (cityName) {
+    const citySprite = createTextSprite(cityName);
+    citySprite.position.set(0, mastHeight - flagHeight + 0.5, 0);
+    flagGroup.add(citySprite);
+  }
   return flagGroup;
-};
+}
+
+function createTextSprite(
+  text: string,
+  parameters?: { font?: string; fillStyle?: string }
+) {
+  const font = parameters?.font || "30px Arial";
+  const fillStyle = parameters?.fillStyle || "white";
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 64;
+  const ctx = canvas.getContext("2d")!;
+
+  ctx.font = font;
+  ctx.fillStyle = fillStyle;
+  ctx.textBaseline = "middle";
+
+  const metrics = ctx.measureText(text);
+  const textWidth = metrics.width;
+
+  ctx.fillText(text, (canvas.width - textWidth) / 2, canvas.height / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+
+  const spriteMaterial = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+  });
+
+  const sprite = new THREE.Sprite(spriteMaterial);
+
+  sprite.scale.set(2, 0.5, 1);
+
+  return sprite;
+}
