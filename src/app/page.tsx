@@ -49,7 +49,7 @@ export default function Home() {
         {
           opacity: 1,
           y: 0,
-          duration: 0.3,
+          duration: 0.05,
           ease: "power2.out",
         }
       );
@@ -57,7 +57,7 @@ export default function Home() {
       gsap.to(rangeRef.current, {
         opacity: 0,
         y: -20,
-        duration: 0.2,
+        duration: 0.05,
         ease: "power2.in",
       });
     }

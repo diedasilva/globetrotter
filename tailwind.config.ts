@@ -25,6 +25,9 @@ export default {
         soft: "5px",
         medium: "8px",
       },
+      backgroundColor: {
+        'mocha-mousse': 'var(--color-mocha-mousse)'
+      }
     },
   },
   plugins: [],

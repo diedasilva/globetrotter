@@ -6,12 +6,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 // Path: src/app/api/destinations
-// Get all destinations from the database at table PossibleDestinations
-export async function GET() {
-  const destinations = await prisma.possibleDestination.findMany();
-  return NextResponse.json(destinations, { status: 200 });
-}
-
 //POST request to add a new destination to the database
 //Destination table
 export async function POST(req: NextRequest) {
@@ -83,6 +77,43 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(newdestination, { status: 201 });
   } catch (error) {
     console.log("Error creating destination:", error);
+    return NextResponse.json(
+      { message: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+//GET destinations from a specific user
+export async function GET() {
+  // Récupérer la session utilisateur
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    // Récupérer toutes les destinations de l'utilisateur
+    const destinations = await prisma.destination.findMany({
+      where: { userId: session.user.id }, 
+      select: {
+        id: true,
+        latitude: true,
+        longitude: true,
+        city: true,
+        country: true,
+        title: true,
+        review: true,
+        globalScore: true,
+        description: true,
+        createdAt: true,
+      },
+    });
+
+    return NextResponse.json(destinations, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching user destinations:", error);
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }

@@ -23,7 +23,7 @@ export default function Account() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const userId = session?.user?.id;
-  const { user, mutateUser } = useUser(userId);
+  const { mutateUser } = useUser(userId);
 
   useEffect(() => {
     if (session?.user?.id) {

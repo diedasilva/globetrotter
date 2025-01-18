@@ -9,6 +9,7 @@ import atmosphereFragmentShader from "./shaders/atmosphereFragment.glsl";
 import atmosphereVertexShader from "./shaders/atmosphereVertex.glsl";
 import { createFlag } from "./Flag";
 import { useDestinations } from "@/hooks/useDestinations";
+
 interface Destination {
   latitude: number;
   longitude: number;
@@ -23,7 +24,7 @@ export default function GlobeComponent() {
   const sphereRef = useRef<THREE.Mesh | null>(null);
   const flagsGroupRef = useRef<THREE.Group | null>(null);
 
-  const { destinations, error, isLoading } = useDestinations();
+  const { destinations} = useDestinations();
 
   useEffect(() => {
     if (!mountRef.current || isInitialized.current) return;
@@ -70,6 +71,7 @@ export default function GlobeComponent() {
         fragmentShader: atmosphereFragmentShader,
         blending: THREE.AdditiveBlending,
         side: THREE.BackSide,
+        depthWrite: false,
       })
     );
 

@@ -53,11 +53,10 @@ const AuthForm: React.FC = () => {
         router,
       );
     }
-    //setIsLoading(false);
   };
 
   return (
-    <div className="auth-form w-full">
+    <div className="auth-form w-full w-80">
       <div className="border-b-2 border-bt-modal py-2">
         <h2 className="text-xl font-bold">
           {isRegister ? "Create an Account" : "Welcome to Globetrotter"}

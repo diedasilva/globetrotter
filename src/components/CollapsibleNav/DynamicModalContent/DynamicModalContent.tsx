@@ -2,7 +2,7 @@
 
 import Account from "./Content/Account";
 import Help from "./Content/Help";
-import Journey from "./Content/Journeys";
+import Journey from "./Content/Journeys/Journeys";
 
 interface DynamicModalContentProps {
   label: string; // Le label qui détermine le contenu

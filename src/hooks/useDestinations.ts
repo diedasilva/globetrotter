@@ -1,17 +1,16 @@
 import useSWR from "swr";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function useDestinations() {
-  // Change l’URL si besoin, ici on utilise ton endpoint custom
-  const { data, error, isLoading, mutate } = useSWR(
-    "/api/destinations/getFromId",
-    fetcher
-  );
+  const { data, error, mutate } = useSWR('/api/destinations', async (url) => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch destinations');
+    return res.json();
+  });
 
   return {
-    destinations: data,  // Données récupérées
-    isLoading,
+    destinations: data,
+    isLoading: !error && !data,
     error,
     mutate,              // Fonction pour forcer le re-fetch
   };

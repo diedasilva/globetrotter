@@ -74,7 +74,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, className }) =
       {/* Contenu de la modal */}
       <div
         ref={modalRef}
-        className={`bg-white rounded-lg w-96 shadow-lg z-10 ${className || ''}`}
+        className={`bg-white rounded-lg m-w-96 shadow-lg z-10 ${className || ''}`}
         style={{ opacity: 0, scale: 0.8 }}
         onClick={(e) => e.stopPropagation()} 
             >

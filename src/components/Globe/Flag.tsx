@@ -59,12 +59,12 @@ export function createFlag(
     const textureLoader = new THREE.TextureLoader();
     const flagTexture = textureLoader.load(flagTextureUrl);
     flagMaterial = new THREE.MeshStandardMaterial({
-      map: flagTexture, // Appliquer la texture
-      side: THREE.DoubleSide, // Visible des deux côtés
+      map: flagTexture,
+      side: THREE.DoubleSide, 
     });
   } else {
     flagMaterial = new THREE.MeshStandardMaterial({
-      color: flagColor, // Couleur par défaut
+      color: flagColor,
       side: THREE.DoubleSide,
     });
   }
